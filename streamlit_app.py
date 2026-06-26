@@ -16,7 +16,7 @@ for _candidate in [
 # ── Import original backend services (all prompts intact) ─────────────────────
 from app.services.enhancer import generate_enhanced_prompt
 from app.services.intent_detection_service import intent_detect_service
-from app.services.compressor import run_compression_pipeline
+from app.services.compressor import compress_text
 from app.services.routing_service import routing_service
 from app.models.schemas import CompressRequest
 
@@ -288,7 +288,7 @@ elif active_tool == "Context Compressor":
             with st.spinner("🗜️ Compressing semantics..."):
                 try:
                     req  = CompressRequest(input_text=raw_prompt, preserve_code=True, mode=mode)
-                    data = run(run_compression_pipeline(req))
+                    data = run(compress_text(req))
 
                     # data is a CompressResponse Pydantic model
                     analysis  = data.compression_analysis
