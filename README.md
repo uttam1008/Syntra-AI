@@ -1,13 +1,3 @@
----
-title: Syntra AI
-emoji: 🚀
-colorFrom: blue
-colorTo: purple
-sdk: docker
-pinned: false
----
-
-<div align="center">
 
 # 🚀 Syntra AI 
 ### Cognitive AI Operating System & Orchestration Middleware
@@ -17,7 +7,7 @@ pinned: false
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
-[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Demo-ffcc00?style=for-the-badge)](https://huggingface.co/spaces/UttamParmar/Syntra-AI)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Demo-ffcc00?style=for-the-badge)](https://huggingface.co/spaces/uttam250/Syntra-AI)
 
 </div>
 
