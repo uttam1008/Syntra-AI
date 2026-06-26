@@ -16,11 +16,15 @@ import httpx
 # 2. The Concrete Implementation (Gemini)
 class GeminiProvider(BaseLLMProvider):
     def __init__(self):
-        # The new google-genai SDK uses a Client object
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.api_key = settings.GEMINI_API_KEY
+        self.client = None
+        if self.api_key:
+            self.client = genai.Client(api_key=self.api_key)
         self.model_name = 'gemini-2.0-flash'
         
     async def generate(self, prompt: str) -> str:
+        if not self.client:
+            raise HTTPException(status_code=500, detail="The AI engine is currently resting because its Gemini API key is missing.")
         try:
             # We use .aio for asynchronous calls in the new SDK
             response = await self.client.aio.models.generate_content(
