@@ -14,10 +14,10 @@ pinned: false
 
 > **An advanced, enterprise-grade AI orchestration pipeline that transforms raw human intent into token-dense, precision-engineered prompts and multi-agent execution pipelines.**
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Live%20Demo-ffcc00?style=for-the-badge)](https://huggingface.co/spaces/UttamParmar/Syntra-AI)
 
 </div>
 
@@ -43,7 +43,7 @@ Stop guessing which AI tool you need. The Orchestrator acts as an enterprise pro
 ### 2. 🗜️ Context Compressor (Distillation Engine)
 A semantic noise-reduction engine. It aggressively optimizes massive payloads (like raw logs, articles, and verbose context) into high-density representations.
 - Analyzes and measures original vs. compressed token size.
-- Mathematically computes a **Meaning Preservation Score** to ensure zero context loss.
+- Mathematically computes a **Meaning Preservation Score** (using offline algorithms like Jaccard similarity) to ensure zero context loss.
 
 ### 3. 🧠 Intent Intelligence Engine
 Extracts hidden cognitive metadata from raw human thought. It categorizes the prompt's structural hierarchy:
@@ -60,17 +60,16 @@ Transforms vague, messy inputs into structured, token-dense, precision-engineere
 
 Syntra AI was engineered with a relentless focus on stability, performance, and UX.
 
-- **Backend Logic (FastAPI):** Strictly typed with **Pydantic** schemas ensuring LLMs output deterministic JSON. Every engine runs through robust routing controllers.
-- **Frontend Visualization (Streamlit):** A heavily customized, glassmorphic UI featuring real-time telemetry dashboards, interactive pipeline visualization, and progress metric cards.
-- **LLM Fallback Architecture:** Engineered for 100% uptime. Syntra seamlessly attempts requests on a primary LLM (Gemini 2.0 Flash) and gracefully cascades to secondary fallback APIs (OpenRouter Llama 3, Groq) with sub-second switching.
-- **Secure Error Handling:** Global frontend interceptors prevent raw JSON traces or technical stack errors from bleeding into the UI, dynamically translating HTTP 422/502s into user-friendly guidance.
-- **Containerization:** fully Dockerized and structured to deploy instantaneously to Hugging Face Spaces or Render.
+- **Backend Architecture:** Built with clean service layers, heavily leveraging **Pydantic** schemas to strictly enforce deterministic JSON output from language models.
+- **Frontend Visualization (Streamlit):** A heavily customized, glassmorphic UI featuring real-time telemetry dashboards, interactive pipeline visualization, and progress metric cards. Streamlit seamlessly imports the backend services directly as a Python package, resulting in blazing fast communication with zero network latency or HTTP connection errors.
+- **Groq Native Engine:** Syntra is powered entirely by Groq (using `llama-3.3-70b-versatile`). It aggressively utilizes Groq's native JSON mode to guarantee flawless syntax parsing for the highly structured cognitive models.
+- **Containerization:** Fully Dockerized using a lightweight single-process design. Designed to deploy instantaneously to Hugging Face Spaces.
 
 ---
 
 ## 🚀 Deployment & Local Setup
 
-Syntra AI is 100% Dockerized. Both the FastAPI backend and Streamlit frontend are spun up concurrently via a single shell script, making it incredibly lightweight to deploy.
+Syntra AI is 100% Dockerized and streamlined. It operates as a single unified process for maximum stability.
 
 ### Running Locally (Docker)
 Ensure Docker is installed on your machine.
@@ -79,7 +78,7 @@ Ensure Docker is installed on your machine.
 docker build -t syntra-ai .
 
 # Run the container (Maps to port 7860)
-docker run -p 7860:7860 -e GEMINI_API_KEY=your_key -e GROQ_API_KEY=your_key syntra-ai
+docker run -p 7860:7860 -e GROQ_API_KEY=your_key syntra-ai
 ```
 Access the UI at `http://localhost:7860`.
 
@@ -88,13 +87,9 @@ Access the UI at `http://localhost:7860`.
 2. Install the requirements:
 ```bash
 pip install -r syntra_backend/requirements.txt
+pip install streamlit requests
 ```
-3. Boot the backend server in one terminal:
-```bash
-cd syntra_backend
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-4. Boot the frontend in another terminal:
+3. Boot the unified application:
 ```bash
 streamlit run streamlit_app.py
 ```
