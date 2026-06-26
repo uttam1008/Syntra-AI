@@ -257,7 +257,7 @@ if active_tool == "Prompt Refinement":
             with st.spinner("📡 Orchestrating..."):
                 try:
                     full_prompt = ENHANCER_SYSTEM_PROMPT.replace("{raw_prompt}", raw_prompt)
-                    raw = call_gemini(full_prompt)
+                    raw, _ = call_llm(full_prompt)
                     data = parse_json_response(raw)
 
                     st.toast('✨ Neural Network Enhancement Complete', icon='🔥')
@@ -318,7 +318,7 @@ elif active_tool == "Intent Intelligence":
             with st.spinner("🧠 Analyzing Cognition..."):
                 try:
                     full_prompt = INTENT_SYSTEM_PROMPT.replace("{raw_prompt}", raw_prompt)
-                    raw = call_gemini(full_prompt)
+                    raw, _ = call_llm(full_prompt)
                     data = parse_json_response(raw)
                     st.toast('🧠 Cognitive Extraction Finished', icon='👁️')
                     st.success("✅ Analysis Complete!")
@@ -367,7 +367,7 @@ elif active_tool == "Context Compressor":
             with st.spinner("🗜️ Compressing semantics..."):
                 try:
                     full_prompt = build_compression_prompt(raw_prompt, mode)
-                    raw = call_gemini(full_prompt)
+                    raw, _ = call_llm(full_prompt)
                     data = parse_json_response(raw)
                     analysis = data.get("compression_analysis", {})
                     reduction = analysis.get("token_reduction_percent", 0)
@@ -403,7 +403,7 @@ elif active_tool == "Intelligent Router":
             with st.spinner("🚦 Routing to optimal agent..."):
                 try:
                     full_prompt = ORCHESTRATOR_PROMPT.replace("{raw_prompt}", raw_prompt).replace("{code_context}", code_ctx or "None")
-                    raw = call_gemini(full_prompt)
+                    raw, _ = call_llm(full_prompt)
                     orch = parse_json_response(raw)
                     st.toast(f'🚦 Pipeline Ready: {orch.get("execution_readiness", {}).get("status", "Unknown")}', icon='🤖')
                     status = orch.get("execution_readiness", {}).get("status", "")
