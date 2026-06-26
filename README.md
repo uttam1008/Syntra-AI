@@ -5,7 +5,6 @@ colorFrom: blue
 colorTo: purple
 sdk: docker
 pinned: false
-short_description: An AI orchestration pipeline that transforms raw human intent into precision-engineered execution.
 ---
 
 <div align="center">
