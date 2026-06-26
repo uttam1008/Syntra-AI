@@ -32,7 +32,8 @@ class GroqProvider(BaseLLMProvider):
         }
         payload = {
             "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}]
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}
         }
         async with httpx.AsyncClient() as client:
             try:

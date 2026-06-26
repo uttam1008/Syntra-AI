@@ -31,6 +31,12 @@ from app.utils.compression_scorer import compute_all_scores
 
 def _strip_json_fences(raw: str) -> str:
     raw = raw.strip()
+    start = raw.find('{')
+    end = raw.rfind('}')
+    if start != -1 and end != -1 and end >= start:
+        return raw[start:end+1]
+    
+    # Fallback to old behavior if no braces found
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return raw.strip()
