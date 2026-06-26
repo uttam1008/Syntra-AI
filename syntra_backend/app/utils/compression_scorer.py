@@ -20,58 +20,41 @@
 import math
 import asyncio
 from typing import Optional
-from google import genai
 from app.core.config import settings
 
-
 # ─────────────────────────────────────────────────────────────
-# Gemini Embedding Client
+# Semantic Similarity (Offline Jaccard Fallback)
 # ─────────────────────────────────────────────────────────────
 
-_gemini_client: Optional[genai.Client] = None
-
-
-def _get_client() -> genai.Client:
-    global _gemini_client
-    if _gemini_client is None:
-        _gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-    return _gemini_client
-
-
-def _cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
-    """Cosine similarity between two embedding vectors. Returns [0.0, 1.0]."""
-    dot = sum(a * b for a, b in zip(vec_a, vec_b))
-    mag_a = math.sqrt(sum(a * a for a in vec_a))
-    mag_b = math.sqrt(sum(b * b for b in vec_b))
-    if mag_a == 0 or mag_b == 0:
+def _jaccard_similarity(text_a: str, text_b: str) -> float:
+    """Computes basic Jaccard similarity based on word tokens."""
+    words_a = set(text_a.lower().split())
+    words_b = set(text_b.lower().split())
+    
+    if not words_a or not words_b:
         return 0.0
-    return min(1.0, dot / (mag_a * mag_b))
-
+        
+    intersection = words_a.intersection(words_b)
+    union = words_a.union(words_b)
+    
+    # Jaccard alone can be harsh for compression (as compression removes words),
+    # so we boost it slightly to mimic the higher baseline of embeddings.
+    base_sim = len(intersection) / len(union)
+    return min(1.0, base_sim + 0.3)
 
 async def compute_semantic_similarity(text_a: str, text_b: str) -> float:
     """
-    Semantic similarity via Gemini text-embedding-004.
-    Falls back to 0.85 conservatively if embedding API unavailable.
+    Computes semantic similarity.
+    Since external embeddings (Google/Gemini) were removed to strictly enforce Groq-only architecture,
+    this uses a fast, offline heuristic.
     """
     try:
-        client = _get_client()
-
-        async def embed(text: str) -> list[float]:
-            def _sync():
-                result = client.models.embed_content(
-                    model="text-embedding-004",
-                    contents=text,
-                )
-                return result.embeddings[0].values
-            return await asyncio.to_thread(_sync)
-
-        vec_a, vec_b = await asyncio.gather(embed(text_a), embed(text_b))
-        similarity = _cosine_similarity(vec_a, vec_b)
-        print(f"[Scorer] Semantic similarity (embedding): {similarity:.4f}")
+        # Run synchronous CPU-bound math in a thread
+        similarity = await asyncio.to_thread(_jaccard_similarity, text_a, text_b)
+        print(f"[Scorer] Semantic similarity (Jaccard offline): {similarity:.4f}")
         return round(similarity, 4)
-
     except Exception as e:
-        print(f"[Scorer] Embedding failed ({type(e).__name__}: {e}) — fallback 0.85")
+        print(f"[Scorer] Similarity failed ({type(e).__name__}: {e}) — fallback 0.85")
         return 0.85
 
 
