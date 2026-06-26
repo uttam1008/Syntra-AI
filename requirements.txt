@@ -1,3 +1,4 @@
+# Root requirements — not used by Docker (backend/requirements.txt is used instead)
+# Kept for local development reference only
 streamlit
-httpx
-
+requests

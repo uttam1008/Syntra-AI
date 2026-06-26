@@ -1,18 +1,25 @@
 #!/bin/bash
+set -e
 
-# Start the FastAPI backend in the background on port 8000
-echo "Starting FastAPI backend..."
+# ── Start FastAPI backend on port 8000 ─────────────────────────────────────────
+echo "==> Starting Syntra FastAPI backend..."
 cd /app/backend
+
+# python -m uvicorn guarantees /app/backend is on sys.path so 'app.main' resolves
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 BACKEND_PID=$!
 
-# Wait a moment to ensure backend starts
-sleep 3
+# Give backend time to fully boot before Streamlit tries to connect
+echo "==> Waiting for backend to be ready..."
+sleep 6
 
-# Start the Streamlit UI in the foreground on port 7860 (Hugging Face default)
-echo "Starting Streamlit UI..."
+# ── Start Streamlit UI on port 7860 (required by Hugging Face Spaces) ──────────
+echo "==> Starting Syntra Streamlit UI..."
 cd /app
-streamlit run streamlit_app.py --server.port 7860 --server.address 0.0.0.0
+streamlit run streamlit_app.py \
+    --server.port 7860 \
+    --server.address 0.0.0.0 \
+    --server.headless true
 
-# If Streamlit stops, kill the backend too
+# If Streamlit exits, shut down backend too
 kill $BACKEND_PID

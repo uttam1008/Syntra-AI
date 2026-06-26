@@ -2,15 +2,8 @@ fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
-google-genai
 httpx
-pytest
-pytest-asyncio
-greenlet
-passlib[bcrypt]
-PyJWT
-email-validator
-tiktoken
 slowapi
+tiktoken
 streamlit
 requests
