@@ -4,7 +4,6 @@ from app.api.routers import enhance_router
 from app.api.routers import intent_router
 from app.api.routers import routing_router
 from app.api.routers import compress_router
-# auth_router intentionally removed — app is fully open, no login required
 
 # ── App Factory ───────────────────────────────────────────────────────────────
 app = FastAPI(
