@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 import re
+import httpx
 from google import genai
 
 st.set_page_config(page_title="Syntra AI", page_icon="🚀", layout="wide")
@@ -55,21 +56,69 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ─── Gemini Client (Direct API Call) ──────────────────────────────────────────
-@st.cache_resource
-def get_gemini_client():
+# ─── 3-Tier Hybrid LLM Engine ─────────────────────────────────────────────────
+# Tier 1: Gemini (Google) | Tier 2: OpenRouter (Llama 3.3 70B) | Tier 3: Groq (Llama 3.3 70B)
+
+def _call_gemini(prompt: str) -> str:
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        return None
-    return genai.Client(api_key=api_key)
-
-def call_gemini(prompt: str) -> str:
-    """Calls Gemini directly and returns the raw text response."""
-    client = get_gemini_client()
-    if client is None:
-        raise ValueError("GEMINI_API_KEY is not set. Please add it in Hugging Face Space Settings → Variables and Secrets.")
+        raise Exception("GEMINI_API_KEY not set")
+    client = genai.Client(api_key=api_key)
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     return response.text
+
+def _call_openrouter(prompt: str) -> str:
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not api_key:
+        raise Exception("OPENROUTER_API_KEY not set")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://huggingface.co/spaces/uttam250/Syntra-AI",
+        "X-Title": "Syntra AI",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    r = httpx.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
+
+def _call_groq(prompt: str) -> str:
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key:
+        raise Exception("GROQ_API_KEY not set")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    r = httpx.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload, timeout=60.0)
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
+
+def call_llm(prompt: str) -> tuple[str, str]:
+    """3-tier fallback: Gemini → OpenRouter → Groq. Returns (response_text, provider_used)."""
+    for fn, name in [(_call_gemini, "Gemini"), (_call_openrouter, "OpenRouter"), (_call_groq, "Groq")]:
+        try:
+            result = fn(prompt)
+            return result, name
+        except Exception as e:
+            err = str(e)
+            # Only fall through on quota/auth errors, not on bad JSON etc.
+            if any(x in err for x in ["429", "quota", "rate", "RESOURCE_EXHAUSTED", "not set", "401", "403"]):
+                print(f"[Syntra] {name} failed ({err[:80]}), trying next provider...")
+                continue
+            raise  # Unknown error — re-raise immediately
+    raise ValueError(
+        "All AI providers are currently exhausted or not configured. "
+        "Please add GEMINI_API_KEY, OPENROUTER_API_KEY, or GROQ_API_KEY in "
+        "Hugging Face Space Settings → Variables and Secrets."
+    )
 
 def parse_json_response(raw: str) -> dict:
     """Strips markdown fences and parses JSON."""
