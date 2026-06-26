@@ -3,7 +3,7 @@
 # Start the FastAPI backend in the background on port 8000
 echo "Starting FastAPI backend..."
 cd /app/backend
-uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
 BACKEND_PID=$!
 
 # Wait a moment to ensure backend starts
