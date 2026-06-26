@@ -1,0 +1,8 @@
+syntra_frontend/node_modules/
+syntra_frontend/.next/
+syntra_backend/__pycache__/
+syntra_backend/venv/
+syntra_backend/env/
+.git/
+.env
+.dockerignore
